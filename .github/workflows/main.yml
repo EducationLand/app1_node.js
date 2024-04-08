@@ -1,37 +1,24 @@
-name: deploy to lambda
+name: Push-to-EC2
+
+# Trigger deployment only on push to master branch
 on:
   push:
     branches:
-    - main
+      - main
 
 jobs:
-  deploy_source:
-    name: build and deploy lambda
-    strategy:
-      matrix:
-        node-version: [18.x]
+  deploy:
+    name: Deploy to EC2 on master branch push
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v1
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v1
-        with:
-          node-version: ${{ matrix.node-version }}
-      - name: npm install and build
+      - name: Checkout the files
+        uses: actions/checkout@v2
+
+      - name: Deploy to Server 1
         run: |
-          npm ci
-          npm run build --if-present
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "bash -s" < deploy_script.sh
         env:
-          CI: true
-      - name: zip
-        uses: montudor/action-zip@v0.1.0
-        with:
-          args: zip -qq -r ./bundle.zip ./
-      - name: default deploy
-        uses: appleboy/lambda-action@master
-        with:
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws_region: ap-south-1
-          function_name: lambda_app1
-          zip_file: bundle.zip
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          HOST_DNS: ${{ secrets.HOST_DNS }}
+          USERNAME: ${{ secrets.USERNAME }}
