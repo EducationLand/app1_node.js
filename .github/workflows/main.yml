@@ -17,7 +17,8 @@ jobs:
 
       - name: Deploy to Server 1
         run: |
-          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "bash -s" < deploy_script.sh
+          ssh "bash -s" < deploy_script.sh 
+          #ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "bash -s" < deploy_script.sh
         env:
           EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
           HOST_DNS: ${{ secrets.HOST_DNS }}
