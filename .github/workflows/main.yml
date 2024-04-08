@@ -1,10 +1,10 @@
 name: Push-to-EC2
 
-# Trigger deployment only on push to main branch now run
+# Trigger deployment only on push to master branch
 on:
   push:
     branches:
-      - main
+      - master
 
 jobs:
   deploy:
@@ -15,11 +15,18 @@ jobs:
       - name: Checkout the files
         uses: actions/checkout@v2
 
+      - name: Set Permissions for SSH Key
+        run: |
+          # Set appropriate permissions for the SSH key
+          chmod 600 ${{ secrets.EC2_SSH_KEY }}
+
       - name: Deploy to Server 1
         run: |
-          ssh "bash -s" < deploy_script.sh 
-          #ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "bash -s" < deploy_script.sh
+          # Execute deploy_script.sh on the EC2 instance via SSH
+          # IMPORTANT: Ensure that the SSH key provided in EC2_SSH_KEY secret has necessary permissions to access the EC2 instance.
+          ssh -o StrictHostKeyChecking=no -i ${{ secrets.EC2_SSH_KEY }} ${{ secrets.USERNAME }}@${{ secrets.HOST_DNS }} "bash -s" < deploy_script.sh
         env:
-          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
-          HOST_DNS: ${{ secrets.HOST_DNS }}
-          USERNAME: ${{ secrets.USERNAME }}
+          # Replace placeholders with actual values from GitHub Secrets
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }} # Private SSH key for EC2 instance access
+          HOST_DNS: ${{ secrets.HOST_DNS }}       # DNS or IP address of the EC2 instance
+          USERNAME: ${{ secrets.USERNAME }}      # Username for SSH authentication
